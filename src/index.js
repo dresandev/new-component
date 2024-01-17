@@ -53,6 +53,7 @@ const options = program.opts();
 
 const fileExtension = options.lang === 'js' ? 'js' : 'tsx';
 const indexExtension = options.lang === 'js' ? 'js' : 'ts';
+const stylesExtension = 'css';
 
 // Find the path to the selected template file.
 const templatePath = `./templates/${options.lang}.js`;
@@ -60,12 +61,12 @@ const templatePath = `./templates/${options.lang}.js`;
 // Get all of our file paths worked out, for the user's project.
 const componentDir = `${options.dir}/${componentName}`;
 const filePath = `${componentDir}/${componentName}.${fileExtension}`;
+const stylesPath = `${componentDir}/${componentName}.module.${stylesExtension}`;
 const indexPath = `${componentDir}/index.${indexExtension}`;
 
 // Our index template is super straightforward, so we'll just inline it for now.
 const indexTemplate = prettify(`\
 export * from './${componentName}';
-export { default } from './${componentName}';
 `);
 
 logIntro({
@@ -114,6 +115,9 @@ mkDirPromise(componentDir)
     logItemCompletion('Component built and saved to disk.');
     return template;
   })
+  .then((template) =>
+    writeFilePromise(stylesPath, '')
+  )
   .then((template) =>
     // We also need the `index.js` file, which allows easy importing.
     writeFilePromise(indexPath, prettify(indexTemplate))
