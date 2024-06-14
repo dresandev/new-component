@@ -46,8 +46,8 @@ export const getConfig = () => {
   return Object.assign({}, defaults, globalOverrides, localOverrides);
 };
 
-export const buildPrettifier = () => {
-  let config = prettier.resolveConfig(process.cwd()).then(config => config);
+export const buildPrettifier = async () => {
+  let config = await prettier.resolveConfig(process.cwd());
 
   // default config:
   config = config || {
