@@ -1,4 +1,4 @@
-module.exports = [
+export default [
   'Thanks for using new-component!',
   'Thanks for using new-component!',
   'Thanks for using new-component!',

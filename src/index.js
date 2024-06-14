@@ -1,10 +1,14 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { program } from 'commander'
 
-const { program } = require('commander');
-
-const {
+import {
+  mkDirPromise,
+  readFilePromiseRelative,
+  writeFilePromise
+} from './utils.js';
+import {
   getConfig,
   buildPrettifier,
   createParentDirectoryIfNecessary,
@@ -12,16 +16,10 @@ const {
   logItemCompletion,
   logConclusion,
   logError,
-} = require('./helpers');
-const {
-  requireOptional,
-  mkDirPromise,
-  readFilePromiseRelative,
-  writeFilePromise,
-} = require('./utils');
+} from './helpers.js';
 
 // Load our package.json, so that we can pass the version onto `commander`.
-const { version } = require('../package.json');
+import packageJSON from '../package.json' with { type: "json" };
 
 // Get the default config for this component (looks for local/global overrides,
 // falls back to sensible defaults).
@@ -32,7 +30,7 @@ const config = getConfig();
 const prettify = buildPrettifier(config.prettierConfig);
 
 program
-  .version(version)
+  .version(packageJSON.version)
   .arguments('<componentName>')
   .option(
     '-l, --lang <language>',
@@ -67,7 +65,7 @@ const indexPath = `${componentDir}/index.${indexExtension}`;
 // Our index template is super straightforward, so we'll just inline it for now.
 const indexTemplate = prettify(`\
 export * from './${componentName}';
-`);
+`).then(value => value);
 
 logIntro({
   name: componentName,
@@ -109,7 +107,9 @@ mkDirPromise(componentDir)
   )
   .then((template) =>
     // Format it using prettier, to ensure style consistency, and write to file.
-    writeFilePromise(filePath, prettify(template))
+    prettify(template).then((value) => {
+      writeFilePromise(filePath, value)
+    })
   )
   .then((template) => {
     logItemCompletion('Component built and saved to disk.');
@@ -120,7 +120,9 @@ mkDirPromise(componentDir)
   )
   .then((template) =>
     // We also need the `index.js` file, which allows easy importing.
-    writeFilePromise(indexPath, prettify(indexTemplate))
+    prettify(indexTemplate).then((value) => {
+      writeFilePromise(indexPath, value)
+    })
   )
   .then((template) => {
     logItemCompletion('Index file built and saved to disk.');
